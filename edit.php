@@ -4,9 +4,11 @@ $title = '';
 $description= '';
 
 if  (isset($_GET['id'])) {
-  $id = $_GET['id'];
-  $query = "SELECT * FROM task WHERE id=$id";
-  $result = mysqli_query($conn, $query);
+  $id = (int) $_GET['id'];
+  $stmt = mysqli_prepare($conn, "SELECT * FROM task WHERE id=?");
+  mysqli_stmt_bind_param($stmt, "i", $id);
+  mysqli_stmt_execute($stmt);
+  $result = mysqli_stmt_get_result($stmt);
   if (mysqli_num_rows($result) == 1) {
     $row = mysqli_fetch_array($result);
     $title = $row['title'];
@@ -15,12 +17,14 @@ if  (isset($_GET['id'])) {
 }
 
 if (isset($_POST['update'])) {
-  $id = $_GET['id'];
+  $id = (int) $_GET['id'];
   $title= $_POST['title'];
   $description = $_POST['description'];
 
-  $query = "UPDATE task set title = '$title', description = '$description' WHERE id=$id";
-  mysqli_query($conn, $query);
+  $query = "UPDATE task set title = ?, description = ? WHERE id=?";
+  $stmt = mysqli_prepare($conn, $query);
+  mysqli_stmt_bind_param($stmt, "ssi", $title, $description, $id);
+  mysqli_stmt_execute($stmt);
   $_SESSION['message'] = 'Task Updated Successfully';
   $_SESSION['message_type'] = 'warning';
   header('Location: index.php');
